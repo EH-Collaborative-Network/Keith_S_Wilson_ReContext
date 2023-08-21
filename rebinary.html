@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Keith S. Wilson</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            padding: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ctable {
+            positon: absolute;
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #flexbox-container {
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+
+        }
+
+        #div1 {
+            height: 32px;
+            align-self: flex-end;
+            text-align: center;
+            width: 100%;
+        }
+
+
+        #div2 {
+            width: 5%;
+            flex-basis: 0;
+        }
+
+        #div3 {
+            flex-basis: 0;
+            width: 95%;
+        }
+
+        #fontContainer {
+            position: relative;
+            top: 0;
+            left: -5px;
+            width: 20px;
+            height: 30px;
+            text-align: center;
+            z-index: 18;
+        }
+
+        #fontIndicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #cslider {
+            position: relative;
+        }
+
+        .slider {
+            -webkit-appearance: slider-vertical;
+            width: 5px;
+            height: 100%;
+            border-radius: 5px;
+            background: #d3d3d3;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        /*The slider circle that you drag about*/
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 5px;
+            height: 200px;
+            border-radius: 50%;
+            background: #5ebaff;
+            outline: none;
+            cursor: grab;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 5px;
+            height: 200px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: grab;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Re-Binary</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.js"></script>
+    <script src="customwrap.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/addons/p5.sound.min.js"></script>
+    <script src="converttobinary.js"></script>
+    <script src="textconversion.js"></script>
+</head>
+
+<body>
+    <a style="position:fixed;top:0;left:0;padding:1em;display:inline-block;background:white;z-index:9;text-decoration:none;color:black;font-family:sans-serif;font-size:18px;" href="/">← Back</a>
+
+    <div id="flexbox-container">
+
+        <div id="div1">
+
+            Enter a word: <input id="iWord" value="Love"></input><button id="submit">Submit</button>
+
+        </div>
+
+        <div id="div2">
+            <div id="cslider"><input type="range" min="7" max="80" value="12" class="slider" id="myRange">
+                <div id="fontContainer">
+                    <div id="fontIndicator">A</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="div3"></div>
+
+
+    </div>
+    <script>
+        //Using ASCII/UTF-8 Encoding
+        // //Huffman coding - Wikipedia
+        // https://en.wikipedia.org/wiki/Huffman_coding
+
+        // Flip-flop (electronics) - Wikipedia
+        // https://en.wikipedia.org/wiki/Flip-flop_(electronics)
+
+        //binary converter:
+        //https://stackoverflow.com/questions/14430633/how-to-convert-text-to-binary-code-in-javascript
+
+        // look up the word and replace with antonyms
+        // format text so it doesn't go off page? make more interesting in general
+        // Do it as stars? Make it sparkle?
+
+        // make twinkle like stars?
+
+        // make it look up words?
+        //https://www.w3schools.com/css/css3_flexbox_container.asp
+
+        //https://en.wikipedia.org/wiki/Flip-flop_(electronics)
+
+        //dom elements are changed a lot in this. google dom elements for more info
+
+        //asci
+        // morse code
+        // https://en.wikipedia.org/wiki/Huffman_coding
+
+        // randomize color
+
+        // word wrap : https://editor.p5js.org/gfm262/sketches/TGK6Th4Xr
+
+        //the following talks about effecting html text. this might work for creating a different version of this that alows text to be selectable for instance
+        //https://www.youtube.com/watch?v=sSQPLIHIzmg
+
+        //slider code
+        //https://www.w3schools.com/howto/howto_js_rangeslider.asp
+
+        // the word to be converted to binary
+        var input;
+        //the canvas (used to center it on the webpage)
+        let cnv;
+        // the number assigned by the slider, used to change the font size
+        var sliderNum;
+        let ww = window.innerWidth;
+        let wh = window.innerHeight;
+        function setup() {
+            cnv = createCanvas(ww/4 * 3, wh/4 * 3);
+            cnv.parent("div3");
+
+            background(0);
+
+            //centers the canvas on the webpage
+            // centerCanvas();
+
+            var button = select("#submit");
+            //When the button is pressed it runs a function
+            button.mousePressed(allConversions);
+
+            //Take whatever is in the input field and make it input.
+            //input = select("");
+            sliderNum = select("#myRange");
+        }
+
+        function draw() {
+            //The following finds the fontindicator tag and changes based on slider number mapped onto fonts (last two digits in the field)
+            document.getElementById("fontIndicator").style.fontSize = map(sliderNum.value(), 7, 80, 8, 20) + "pt";
+
+            if (document.getElementById("submit").disabled) {
+                document.getElementById("fontIndicator").style.color = "LightGray";
+            } else {
+                document.getElementById("fontIndicator").style.color = "Black";
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //print(document.getElementById("fontIndicator").style.fontSize);
+        }
+
+        // THE MAIN CALL - This happens when submit button is pressed.
+        function allConversions() {
+            background(0);
+
+            input = document.getElementById("iWord").value;
+
+            //  Makes sure that the line doesn't crash the program by being empty
+            if (input == null || input == undefined || input == "") {
+                input = "404";
+            }
+
+            //This disables the button from being spammed
+            //I need to calculate how long to wait before allowing it to come back before i can implement it
+            document.getElementById("submit").disabled = true;
+            document.getElementById("myRange").disabled = true;
+
+            printTitle("a binary definition of ");
+
+            //size of poem itself
+            textSize(sliderNum.value());
+
+            // 1. the text 2.Where the text starts x 3. where text starts y 4. width of wordwrap 5. height of the wordwrap
+            textAlign(LEFT);
+            customWrap(
+                convertToWord(convertToBinary(input), "No", "Yes"), // First word is 0s and second is 1s
+                75,
+                90,
+                width - 150,
+                width - 150
+            );
+
+            // Calculate the time from characters printed instead of manually doing it.
+            setTimeout(turnButtonOn, timeToFreeze / 3);
+        }
+
+        function printTitle(inp) {
+            push();
+            textSize(32);
+            fill(255);
+            textAlign(CENTER);
+
+            //Substring trims a sentence to just 18 characters to stop super long lines from breaking the code
+            text(inp + input.substring(0, 18) + ":", width / 2, 55);
+            pop();
+        }
+
+        // All the code that centers the canvas
+        // function centerCanvas() {
+        //   var x = (windowWidth - width) / 2;
+        //   var y = 57;
+        //   cnv.position(x, y);
+        // }
+
+        // This recenters the canvas everytime you resize the window
+        // function windowResized() {
+        //   centerCanvas();
+        // }
+
+        function turnButtonOn() {
+
+            document.getElementById("submit").disabled = false;
+            document.getElementById("myRange").disabled = false;
+        }
+
+    </script>
+</body>
+
+</html>

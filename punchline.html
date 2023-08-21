@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Keith S. Wilson</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codebird@2.6.0/codebird.min.js"></script>
+    <script src="calltweet.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <a style="position:fixed;top:0;left:0;padding:1em;display:inline-block;background:white;z-index:9;text-decoration:none;color:black;font-family:sans-serif;font-size:18px;" href="/">← Back</a>
+
+    <script>
+        //https://www.youtube.com/watch?v=fBqaA7zRO58&ab_channel=TheCodingTrain
+        //https://www.youtube.com/watch?v=HXOD_XDA-KU&ab_channel=TheCodingTrain
+
+        //https://v2.jokeapi.dev/#joke-type
+
+        // things to consider: Reverse lifespan (kind of haunting)
+        // no movement, color starts bright and "dries" to a dark shade. accumulates
+
+
+        //array of the jokes, which allows them to be deleted and generated in the draw function.
+        let jokes = [];
+        // the temporary file for storying data from the api
+        let dataJokes;
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            //    createCanvas(windowWidth, windowHeight);
+            angleMode(DEGREES);
+            // setInterval(getJoke, 100);
+        }
+
+        function draw() {
+            background(0);
+
+            //run through all the jokes and make sure they are displayed on the screen
+            for (let i = jokes.length - 1; i >= 0; i--) {
+                jokes[i].move();
+                jokes[i].show(); // this deletes them from the array--might want to readd this in the future?
+                // if (jokes[i].isFinished()) {
+                //   jokes.splice(i, 1);
+                // }
+            }
+            title();
+        }
+
+        function title() {
+            strokeWeight(4);
+            stroke(255);
+            textSize(windowHeight / 7.32);
+            translate(windowWidth / 14.29, windowHeight - (windowHeight / 60));
+            rotate(-90);
+            fill(0, 0, 0);
+            text("punchline", 0, 0);
+            pop();
+        }
+
+        function gotData(data) {
+            dataJokes = data;
+            // If none of the below searches find a suitable race joke, just use a knock knock.
+            // Consider adding who's there?
+            let r = "Knock knock.";
+            // The number subtracted from width stops the writing from 
+            let nx = random(0, windowWidth - 400);
+            let ny = random(0, windowHeight);
+
+            // If data exists at all
+            if (dataJokes) {
+                //if the joke is a question and also contains a race marker.
+                if (
+                    match(dataJokes.setup, "black") ||
+                    match(dataJokes.setup, "Africa") ||
+                    match(dataJokes.setup, "Africans") ||
+                    match(dataJokes.setup, "Black")
+                ) {
+                    if (
+                        match(dataJokes.setup, "Who") ||
+                        match(dataJokes.setup, "What") ||
+                        match(dataJokes.setup, "When") ||
+                        match(dataJokes.setup, "Where") ||
+                        match(dataJokes.setup, "Why") ||
+                        match(dataJokes.setup, "How")
+                    ) {
+                        r = dataJokes.setup;
+                    }
+                }
+            }
+            let b = new Joke(nx, ny, r);
+            jokes.push(b);
+        }
+
+        function mousePressed() {
+            getJoke();
+        }
+
+        function getJoke() {
+            let diceRoll = Math.round(random(1, 2));
+            // randomly decide whether to search for jokes about black people or africans
+            if (diceRoll == 1) {
+                loadJSON(
+                    "https://v2.jokeapi.dev/joke/Dark?type=twopart&contains=black",
+                    gotData
+                );
+            } else {
+                loadJSON(
+                    "https://v2.jokeapi.dev/joke/Dark?type=twopart&contains=africa",
+                    gotData
+                );
+            }
+        }
+
+        class Joke {
+            constructor(x, y, r) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.lifespan = 255;
+            }
+
+            move() {
+                // When the countdown gets to a certain threshold, the animation stops
+                if (!this.isFinished()) {
+                    this.x = this.x + random(-5, 5);
+                    this.y = this.y + random(-5, 5);
+                }
+            }
+
+            show() {
+                stroke(255);
+                fill(139, 0, 0, this.lifespan);
+                noStroke();
+                textSize(windowHeight / 18.75);
+                text(this.r, this.x, this.y);
+                // Stop counting down when the lifespan reaches a certain threshold so that the line remains visible.
+                if (!this.isFinished()) {
+                    this.lifespan = this.lifespan - .75;
+                }
+            }
+
+            isFinished() {
+                if (this.lifespan < 100) {
+                    return true;
+                } else {
+                    return false;
+                }
+                // if (this.lifespan < 0) {
+                //   return true;
+                // } else {
+                //   return false;
+                // }
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+    </script>
+</body>
+
+</html>

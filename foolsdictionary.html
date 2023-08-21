@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.glitch@latest/p5.glitch.js"></script>
+    <title>Keith S. Wilson</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #flexbox-container {
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            flex-direction: column;
+
+            align-items: center;
+            background-color: lightblue;
+
+        }
+
+        #div1 {
+            text-align: center;
+            width: 510px;
+            height: 120px;
+
+
+        }
+
+
+        #div2 {}
+    </style>
+    <meta charset="utf-8" />
+
+</head>
+
+<body>
+    <a style="position:fixed;top:0;left:0;padding:1em;display:inline-block;background:white;z-index:9;text-decoration:none;color:black;font-family:sans-serif;font-size:18px;" href="/">← Back</a>
+    <script>//!!!!! try this:edttps://editor.p5js.org/creativecoding/sketches/rWcunRzJW
+
+
+        //only 100 calls per hour
+        // https://www.youtube.com/watch?v=YsgdUaOrFnQ
+        // https://api.wordnik.com/v4/word.json/rainbow/relatedWords?useCanonical=false&limitPerRelationshipType=10&api_key=bxpm7h3dvm4xb73y84llkfrl7he7cyrys546npmxhq8zhu6rw
+
+        // https://fonts.google.com/specimen/Source+Sans+Pro
+
+        // change font?
+        //https://p5js.org/examples/interaction-tickle.html
+
+        // every time someone loads it, it's a different version?
+        // 	1. a synonym list
+        // 	2. a context list (6 FEET!)
+        // 	3. etc
+        // things that people are afraid of
+        // keep old word on screen faded out and or blurred?
+
+        //glitch: https://editor.p5js.org/ffd8/sketches/6_7JU6kI0
+
+        //red has no antonym
+        //good has many
+
+        // Trigger keeps track of whether an error has been thrown. if it has, then it goes to error screen
+        let triggerGlitch = false;
+
+
+
+        let url1 = "https://api.wordnik.com/v4/word.json/";
+        //let word = "rainbow";
+        let url2Opposite = "/relatedWords?useCanonical=false&limitPerRelationshipType=10&api_key=bxpm7h3dvm4xb73y84llkfrl7he7cyrys546npmxhq8zhu6rw";
+        let url2Define =
+            "/definitions?limit=200&includeRelated=false&useCanonical=false&includeTags=false&api_key=bxpm7h3dvm4xb73y84llkfrl7he7cyrys546npmxhq8zhu6rw";
+
+        let urlRandom = "https://api.wordnik.com/v4/words.json/randomWord?hasDictionaryDef=true&minCorpusCount=100000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&api_key=bxpm7h3dvm4xb73y84llkfrl7he7cyrys546npmxhq8zhu6rw"
+
+        let antonym;
+
+        //let lastWorkingMessage = [];
+
+        //starting word
+        let message = "black",
+            font,
+            bounds, // holds x, y, w, h of the text's bounding box
+            fontsize = 60,
+            x,
+            y; // x and y coordinates of the text
+        let rando;
+        let partOfSpeech;
+        let definition;
+        let cnv;
+        let font2;
+
+        function preload() {
+            //this font needs to be uploaded to server or possibly referred to via url
+            font = loadFont("SourceSansPro-Regular.ttf");
+            font2 = loadFont("Newsreader-SemiBold.ttf");
+            backupWords = loadJSON("./backupDef.json");
+        }
+
+        function setup() {
+            background(255);
+            cnv = createCanvas(510, 600);
+            cnv.parent("div2");
+
+            // set up the font
+            textFont(font);
+            textSize(fontsize);
+
+            var button = select("#submit");
+            //When the button is pressed it runs a function
+            button.mousePressed(askWordnik);
+
+
+
+            // get the width and height of the text so we can center it initially
+            bounds = font.textBounds(message, 0, 0, fontsize);
+            x = width / 2 - bounds.w / 2;
+            y = height / 2 - bounds.h / 2;
+        }
+
+
+        //<< 1 >> Main call that happens when you click submit
+        function askWordnik() {
+            background(255);
+            //Take whatever is in the input field and make it input.
+            message = select("#iWord").value().toLowerCase();
+            message = trim(message);
+
+            print(message);
+
+            //get antonymn
+            loadJSON(url1 + message.split(' ').join('%20') + url2Opposite, antonymCall, antonymFailure);
+
+            //rolls a random number in case this fails and it has to pull from the backup random json file
+            rando = round(random(0, 99));
+
+
+
+
+        }
+
+        //<< 2 A >> Try to load an antonym
+        function antonymCall(data) {
+            triggerGlitch = false;
+            background(255);
+            noStroke();
+
+            for (let i = 0; i <= data.length - 1; i++) {
+                // An antonym is found. find the definition for it
+                if (data[i].relationshipType == "antonym") {
+
+                    antonym = data[i].words[round(random(0, data[i].words.length - 1))];
+
+                    loadJSON(url1 + antonym + url2Define, retrieveDefData, retrieveDefDataFailure);
+
+                    return;
+                } else {
+
+                    loadJSON(urlRandom, randomizeWord, retrieveDefDataFailure);
+
+                    return;
+
+                }
+
+            }
+        }
+
+        //if the json file doesn't load, this runs
+        //<< 2 B >> Can't figure out why it gets stuck sometimes.
+        function antonymFailure() {
+            print(
+                "Antonym Failure. loadJson did not work. The message that threw the error is " + message
+            );
+
+            //Keep this glitchy. This catches mispelled words
+            triggerGlitch = true;
+
+        }
+
+        //<< 3 A >> After an antonym has been loaded (or a random word), continue to choose from it to get the definition to display
+        function retrieveDefData(data) {
+            triggerGlitch = false;
+
+
+
+            if (data[0].partOfSpeech != null && data[0].partOfSpeech != "") {
+
+                partOfSpeech = data[0].partOfSpeech;
+            } else {
+                partOfSpeech = random(['noun', 'verb', 'adverb', 'adjective'])
+            }
+
+            //definition
+
+            definition = stripHTML(data[round(random(0, data.length - 1))].text);
+
+            printDefiniton()
+
+        }
+
+        //<< 3 B >> At this point, an antonym HAD been found but some failure happened. Just choose a backup word.
+        function retrieveDefDataFailure() {
+            print(
+                "Antonym Failure 2. loadJson did not work. The message that threw the error is " + message
+            );
+            //triggerGlitch = true;
+
+            avoidError();
+
+            printDefiniton();
+        }
+
+        // Print all the parts of the definition so long as a glitch isn't happening
+        function printDefiniton() {
+
+            background(255);
+            noStroke();
+            textFont(font2);
+            fill(0);
+
+
+            // The word:
+            if (message.length < 13) {
+                textSize(60);
+                text(message, 60, 100);
+            } else {
+                textSize(30);
+                print("got eeem!");
+                text(message, 60, 100);
+
+            }
+            textFont('Helvetica');
+
+            // Type of speech:
+            textSize(16);
+            textStyle(ITALIC);
+            text(partOfSpeech, 40, 140);
+
+            //definition
+            textStyle(NORMAL);
+            text(definition, 60, 160, 400, 200);
+
+            textSize(14);
+            fill(200);
+            text("*Who looks at another person and doesn't see color", 5, height - textAscent() - 10, 400, 200);
+        }
+
+        //Used to strip HTML from a definition
+        function stripHTML(str) {
+            //  print("STRIP " + str)
+            var str = str.replace(/(<([^>]+)>)/gi, "");
+            return str;
+        }
+
+
+
+        // Creates weird line effect and made up definition 
+        function glitch() {
+
+            for (let c = 0; c < 119; c++) {
+                let r = random(0, 35);
+                stroke(r);
+                i = random(0, width);
+                line(i, 0, i, height);
+            }
+
+            for (let c2 = 0; c2 < 119; c2++) {
+
+                let r2 = random(0, 25);
+                j = random(0, width);
+                strokeWeight(random(1, 4));
+                stroke(r2, 100);
+                line(0, j, width, j);
+            }
+
+            textFont(font2);
+
+            fill(255, 25, 25);
+
+            if (message.length < 13) {
+                textSize(60);
+                text(message, 60, 100);
+            } else if (message.length < 30) {
+                textSize(30);
+                print("got eeem!");
+                text(message, 60, 90, 400, 100);
+            } else {
+                textSize(30);
+                text(message.substring(0, 60), 60, 45, 400, 100);
+            }
+
+            textFont('Helvetica');
+
+
+            // Type of speech:
+            textSize(16);
+            textStyle(ITALIC);
+            text("slang, mispelling, or neologism", 40, 140);
+
+            //definition
+            textStyle(NORMAL);
+            text("Example: I don't see color. It doesn't matter if a person is red, white, blue, " + message + " or purple to me!", 60, 160, 400, 200);
+
+        }
+
+        // Alt path for when no antonyms are found at all
+        function randomizeWord(data) {
+            //Send rrandomword to middle part of chain above, as if an antonym passed
+
+            // print("catostrophic failure happened?");
+            // print(data);
+            loadJSON(url1 + data.word + url2Define, retrieveDefData, retrieveDefDataFailure);
+
+            triggerGlitch = false;
+            background(255);
+            noStroke();
+        }
+
+
+
+
+        // The following puts backup definitions in place if some part of wordnik fails
+        function avoidError() {
+            //   Type of speech:
+            partOfSpeech = backupWords.backupDef[rando].partOfSpeech;
+
+            //definition
+            definition = backupWords.backupDef[rando].definition;
+        }
+
+        // Primarily used to create a glitch effect
+        function draw() {
+
+            if (triggerGlitch) {
+                glitch();
+            }
+        }
+    </script>
+</body>
+<div id="flexbox-container">
+
+    <div id="div1">
+        <p>
+        <h1>Dictionary for the Ideal* American </h1>
+
+        Enter a word to define: <input id="iWord" value="Black"></input>
+        <button id="submit">Submit</button>
+    </div>
+    <div id="div2"></div>
+</div>
+</p>
+
+</html>
